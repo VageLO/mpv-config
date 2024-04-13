@@ -127,6 +127,14 @@ end
 function create_anki_card()
 
     mp.osd_message("🔃 Adding to Anki")
+
+    -- package.path = mp.command_native({"expand-path", "~~/script-modules/?.lua;"})..package.path
+    -- local input = require "user-input-module"
+
+    -- input.get_user_input(function(line, err)
+    --     if line then print(line) end
+    -- end, { request_text = "print text:" })
+
     local current_file = mp.get_property('path')
     local current_filename = mp.get_property('filename')
     local sub_text = mp.get_property("sub-text")

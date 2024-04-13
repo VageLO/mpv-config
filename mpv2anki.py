@@ -101,15 +101,14 @@ def main():
     ffmpeg_call(fields_mpv)
     # anki_note_fields = getNoteFields()
     # print(file, fields)
-    ret = create_deck_if_not_exists(config["deck"])
-    if ret["error"] != None:
-        return ret["error"]
+    # ret = create_deck_if_not_exists(config["deck"])
+    # if ret["error"] != None:
+    #     return ret["error"]
     
     fields = {
         "Word": fields_mpv["sub_text"],
         "Examples": f"<ul><li>{fields_mpv["sub_text"]}</li></ul>",
         "Video": fields_mpv["file_name"],
-        "Source": f"<a href=\"file:///{os.getcwd().replace('\\', '/')}{fields_mpv["file"]}\"/>"
     }
     return add_anki_card(f'"{config["deck"]}"', config["note_type"], fields)
 
