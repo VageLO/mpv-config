@@ -1,10 +1,20 @@
-seconds_to_replay = 2.25
+seconds_to_replay = 2.5
 
 utils = require 'mp.utils'
-ini = require 'ini'
+local json = require 'dkjson'
 
--- Load the INI file
-local config = ini.parse([[C:\Users\maksg\AppData\Roaming\mpv\scripts\config.ini]])
+-- Read the JSON file
+local file = io.open([[C:\Users\maksg\AppData\Roaming\mpv\scripts\config.json]], "r")
+if file then
+    local content = file:read("*a")
+    file:close()
+
+    -- Parse JSON into a Lua table
+    config = json.decode(content)
+else
+    print("Failed to open the JSON file.")
+end
+---
 
 PYTHON_HELPER_PATH = config.PYTHON_HELPER_PATH
 
@@ -115,47 +125,55 @@ function on_playback_restart()
 end
 
 function create_anki_card()
+
+    mp.osd_message("🔃 Adding to Anki")
     local current_file = mp.get_property('path')
     local current_filename = mp.get_property('filename')
-    local subtitle_track = mp.get_property_number("sid")
-    local audio_track = mp.get_property_number("aid")
     local sub_text = mp.get_property("sub-text")
+    local sub_track = 0
+    local audio_track = 0
+    local video_track = 0
 
-    print("Audio Track ID: " .. audio_track)
-    print("Subtitle Track ID: " .. subtitle_track)
+    local track_list = mp.get_property_native("track-list")
+    for _, track in ipairs(track_list) do
+        if track.selected == true then
+            if track.type == "sub" then
+                sub_track = track["ff-index"]
+            end
+            if track.type == "audio" then
+                audio_track = track["ff-index"]
+            end
+            if track.type == "video" then
+                video_track = track["ff-index"]
+            end
+        end
+    end
     
     local curr_time = mp.get_property_number("time-pos")
     if sub_text == nil then
         sub_text = ""
     end
-
-    -- if start_timestamp ~= nil and end_timestamp ~= nil and end_timestamp > start_timestamp then
-    --     status_msg = "[mpv2anki] " .. time_pos .. " # " .. start_timestamp .. " # " .. end_timestamp .. " # " .. sub_text
-    -- elseif start_timestamp ~= nil and start_timestamp < time_pos then
-    --     status_msg = "[mpv2anki] " .. time_pos .. " # " .. start_timestamp .. " # " .. "-1" .. " # " .. sub_text
-    -- else
-    --     status_msg = "[mpv2anki] " .. time_pos .. " # " .. "-1" .. " # " .. "-1" .. " # " .. sub_text
-    -- end
     
     if start_timestamp == nil and end_timestamp == nil then
-        start_timestamp = curr_time - 0.5
-        end_timestamp = curr_time + 0.5
+        start_timestamp = curr_time - seconds_to_replay
+        end_timestamp = curr_time + seconds_to_replay
     elseif end_timestamp < start_timestamp then
-        end_timestamp = curr_time + 0.5
+        end_timestamp = curr_time + seconds_to_replay
     end
 
     local fields = {}
     
     fields["file"] = current_file
-    fields["file_name"] = current_filename
+    fields["file_name"] = os.time() .. "_" .. current_filename 
     fields["aid"] = audio_track
-    fields["sid"] = subtitle_track
+    fields["sid"] = sub_track
+    fields["vid"] = video_track
     fields["start_timestamp"] = start_timestamp
     fields["end_timestamp"] = end_timestamp
     fields["sub_text"] = sub_text
 
     local res = utils.format_json(fields)
-    print(res)
+
     local args = {[[python]], PYTHON_HELPER_PATH, res}
     config.test = args
     ret = utils.subprocess({args = args})
@@ -163,19 +181,18 @@ function create_anki_card()
     if ret["status"] == 0 then
         mp.osd_message("✔")
     else
-        mp.osd_message("error")
+        mp.osd_message(ret["stdout"])
     end
 
-    mp.set_property("term-status-msg", status_msg)
-    mp.add_timeout("0.25", reset_property)
+    -- mp.set_property("term-status-msg", status_msg)
+    -- mp.add_timeout("0.25", reset_property)
 
-    reset_timestamps("no-osd")
+    -- reset_timestamps("no-osd")
 end
 
 function reset_property()
     mp.set_property("term-status-msg", "")
 end
-
 
 mp.register_event("seek", on_seek)
 mp.register_event("playback-restart", on_playback_restart)
