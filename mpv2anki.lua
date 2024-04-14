@@ -1,7 +1,9 @@
 seconds_to_replay = 2.5
 
+package.path = mp.command_native({"expand-path", "~~/script-modules/?.lua;"})..package.path
 utils = require 'mp.utils'
 local json = require 'dkjson'
+local input = require "user-input-module"
 
 -- Read the JSON file
 local file = io.open([[C:\Users\maksg\AppData\Roaming\mpv\scripts\config.json]], "r")
@@ -124,16 +126,17 @@ function on_playback_restart()
     end
 end
 
-function create_anki_card()
+local function getWord(word, err, flag)
+    if not word then return end
+    create_anki_card(word)
+end
 
+
+function create_anki_card(word)
+
+    word = string.match(word, "^%s*(.-)%s*$")
+    
     mp.osd_message("🔃 Adding to Anki")
-
-    -- package.path = mp.command_native({"expand-path", "~~/script-modules/?.lua;"})..package.path
-    -- local input = require "user-input-module"
-
-    -- input.get_user_input(function(line, err)
-    --     if line then print(line) end
-    -- end, { request_text = "print text:" })
 
     local current_file = mp.get_property('path')
     local current_filename = mp.get_property('filename')
@@ -171,6 +174,7 @@ function create_anki_card()
 
     local fields = {}
     
+    fields["word"] = word
     fields["file"] = current_file
     fields["file_name"] = os.time() .. "_" .. current_filename 
     fields["aid"] = audio_track
@@ -192,8 +196,10 @@ function create_anki_card()
         mp.osd_message(ret["stdout"])
     end
 
+    start_timestamp = nil
+    end_timestamp = nil
     -- mp.set_property("term-status-msg", status_msg)
-    -- mp.add_timeout("0.25", reset_property)
+    mp.add_timeout("0.25", reset_property)
 
     -- reset_timestamps("no-osd")
 end
@@ -211,4 +217,10 @@ mp.add_key_binding("e", "set-end-timestamp", set_end_timestamp)
 mp.add_key_binding("ctrl+w", "replay-the-first-seconds", replay_the_first_seconds)
 mp.add_key_binding("ctrl+e", "replay-the-last-seconds", replay_the_last_seconds)
 mp.add_key_binding("ctrl+r", "reset-timestamps", reset_timestamps)
-mp.add_key_binding("b", "create-anki-card", create_anki_card)
+mp.add_key_binding("b", "create-anki-card", function()
+    mp.osd_message("🕳 Enter Word (not required)")
+    input.get_user_input(getWord, {
+        request_text = "❤ Word:",
+        replace = true
+    }, "replace")
+end)
