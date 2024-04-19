@@ -6,7 +6,8 @@ local json = require 'dkjson'
 local input = require "user-input-module"
 
 -- Read the JSON file
-local file = io.open([[C:\Users\maksg\AppData\Roaming\mpv\scripts\config.json]], "r")
+local scripts_dir = mp.find_config_file("scripts")
+local file = io.open(scripts_dir .. "/config.json", "r")
 if file then
     local content = file:read("*a")
     file:close()
@@ -135,8 +136,6 @@ end
 function create_anki_card(word)
 
     word = string.match(word, "^%s*(.-)%s*$")
-    
-    mp.osd_message("🔃 Adding to Anki")
 
     local current_file = mp.get_property('path')
     local current_filename = mp.get_property('filename')
@@ -144,6 +143,13 @@ function create_anki_card(word)
     local sub_track = 0
     local audio_track = 0
     local video_track = 0
+
+    if sub_text == "" and word == "" then 
+        mp.osd_message("Select subtitles or write word!💢")
+        return 
+    end
+
+    mp.osd_message("🔃 Adding to Anki")
 
     local track_list = mp.get_property_native("track-list")
     for _, track in ipairs(track_list) do
@@ -183,17 +189,18 @@ function create_anki_card(word)
     fields["start_timestamp"] = start_timestamp
     fields["end_timestamp"] = end_timestamp
     fields["sub_text"] = sub_text
+    fields["config"] = scripts_dir .. "\\config.json"
 
     local res = utils.format_json(fields)
 
     local args = {[[python]], PYTHON_HELPER_PATH, res}
-    config.test = args
+
     ret = utils.subprocess({args = args})
 
     if ret["status"] == 0 then
         mp.osd_message("✔")
     else
-        mp.osd_message(ret["stdout"])
+        mp.osd_message(ret["stdout"], 2.0)
     end
 
     start_timestamp = nil

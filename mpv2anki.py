@@ -4,9 +4,6 @@ import sys
 import subprocess
 from bs4 import BeautifulSoup
 
-with open('C:\\Users\\maksg\\AppData\\Roaming\\mpv\\scripts\\config.json') as file:
-    global config 
-    config = json.load(file)
 
 def send_to_anki(method, params):
     try: 
@@ -115,8 +112,10 @@ def webScrapData(quote_word):
 
         examples = soup.find_all('p', class_='ex_o')
         if examples:
+            result['example'] += '<ul>'
             for example in examples[0:3]:
                 result['example'] += f'<li>{example.get_text().strip()}</li>'
+            result['example'] += '</ul>'
 
         word_forms = soup.find_all('div', class_='word_form_block')
         if word_forms:
@@ -140,32 +139,43 @@ def webScrapData(quote_word):
 def main():
     fields_mpv = sys.argv[1]
     fields_mpv = json.loads(fields_mpv)
-    ffmpeg_call(fields_mpv)
+
+    with open(fields_mpv['config']) as file:
+        global config 
+        config = json.load(file)
+
+    # fields_mpv = {
+    #     "word": "",
+    #     "sub_text": "fdjfd fjdf",
+    #     "file_name": "file name"
+    # }
     # anki_note_fields = getNoteFields()
 
     # ret = create_deck_if_not_exists(config["deck"])
     # if ret["error"] != None:
     #     return ret["error"]
 
-    if(fields_mpv["word"] != ""):
-        data = webScrapData(fields_mpv["word"])
-
-        fields = {
-            "Word": fields_mpv["word"],
-            "Meaning": data["meaning"],
-            "Examples": f"<ul>{data["example"]}<li>{fields_mpv["sub_text"]}</li></ul>",
-            "WordForm": data["word_form"],
-            "Video": fields_mpv["file_name"],
-            "Image": data["image"],
-            "Transcription": data["transcription"],
-        }
-    else:
-        fields = {
-            "Word": fields_mpv["sub_text"],
-            "Examples": f"<ul><li>{fields_mpv["sub_text"]}</li></ul>",
-            "Video": fields_mpv["file_name"],
-        }
+    if fields_mpv["word"] != "":
+        fields_mpv.update(webScrapData(fields_mpv["word"]))
+    else: fields_mpv["word"] = fields_mpv["sub_text"]
     
+    config_fields = config["note_fields"]
+
+    fields = {}
+
+    for key, value in config_fields.items():
+        if isinstance(value, list):
+            for val in value:
+                if val in fields_mpv and fields_mpv[val] != "":
+                    if key in fields: 
+                        fields[key] += fields_mpv[val]
+                    else: 
+                        fields[key] = fields_mpv[val]
+            continue
+        if value in fields_mpv and fields_mpv[value] != "":
+            fields[key] = fields_mpv[value]
+
+    ffmpeg_call(fields_mpv)
     return add_anki_card(f'"{config["deck"]}"', config["note_type"], fields)
 
 if __name__ == '__main__':
@@ -174,6 +184,5 @@ if __name__ == '__main__':
     if ret["error"] == None and ret["result"] != None:
         sys.exit(0)
     else:
-        sys.stderr(str(ret))
-        sys.stdout(str(ret))
+        sys.stdout.write(str(ret))
         sys.exit(1)
