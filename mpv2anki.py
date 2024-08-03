@@ -41,13 +41,13 @@ def ffmpeg_call(fields):
     ffmpeg_command = [
         "ffmpeg",
         "-i", fields["file"],
-        "-ss", f"{fields["start_timestamp"]}",
-        "-to", f"{fields["end_timestamp"]}",
-        "-map", f"0:{fields["aid"]}",
-        "-map", f"0:{fields["sid"]}",
-        "-map", f"0:{fields["vid"]}",
+        "-ss", f"{fields['start_timestamp']}",
+        "-to", f"{fields['end_timestamp']}",
+        "-map", f"0:{fields['aid']}",
+        "-map", f"0:{fields['sid']}",
+        "-map", f"0:{fields['vid']}",
         "-c", "copy",
-        f"{config["COLLECTION_MEDIA_DIR"]}{fields["file_name"]}"
+        f"{config['COLLECTION_MEDIA_DIR']}{fields['file_name']}"
     ]
 
     process = subprocess.Popen(ffmpeg_command)
