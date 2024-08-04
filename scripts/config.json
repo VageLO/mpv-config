@@ -1,7 +1,7 @@
 {
     "deck": "Master Deck::English::Words",
     "note_type": "Custom: English",
-    "COLLECTION_MEDIA_DIR": "/home/vagelo/.local/share/Anki2/main/collection.media",
+    "COLLECTION_MEDIA_DIR": "/home/vagelo/.local/share/Anki2/main/collection.media/",
     "CONNECT_URL": "http://localhost:8765",
     "PYTHON_HELPER_PATH": "/home/vagelo/.config/mpv/mpv2anki.py",
     "note_fields": {
