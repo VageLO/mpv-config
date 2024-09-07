@@ -5,7 +5,7 @@ import subprocess
 from bs4 import BeautifulSoup
 
 
-def send_to_anki(method, params):
+def send_to_anki(method, params, fields_mpv):
     try: 
         res = requests.post(config["CONNECT_URL"], json={"action": method, "version": 6, "params": params})
 
@@ -15,6 +15,8 @@ def send_to_anki(method, params):
 
         if res["error"] != None:
             return {"error": res["error"]}
+
+        ffmpeg_call(fields_mpv)
         return res
     except requests.exceptions.ConnectionError:
         return {"error": False}
@@ -23,7 +25,7 @@ def create_deck_if_not_exists(deck):
     ret = send_to_anki("changeDeck", {"cards": [], "deck": deck})
     return ret
 
-def add_anki_card(deck, model, fields):
+def add_anki_card(deck, model, fields, fields_mpv):
     params = {
         "note": {
             "deckName": deck,
@@ -34,7 +36,7 @@ def add_anki_card(deck, model, fields):
 			],
         }
     }
-    return send_to_anki("addNote", params)
+    return send_to_anki("addNote", params, fields_mpv)
 
 def ffmpeg_call(fields):
 
@@ -50,15 +52,18 @@ def ffmpeg_call(fields):
         f"{config['COLLECTION_MEDIA_DIR']}{fields['file_name']}"
     ]
 
-    res = requests.head(fields["file"])
-    if res.status_code == 200:
-        ffmpeg_command = [
-            "ffmpeg",
-            "-i", fields["file"],
-            "-ss", f"{fields['start_timestamp']}",
-            "-to", f"{fields['end_timestamp']}",
-            f"{config['COLLECTION_MEDIA_DIR']}{fields['file_name']}"
-        ]
+    try:
+        res = requests.head(fields["file"])
+        if res.status_code == 200:
+            ffmpeg_command = [
+                "ffmpeg",
+                "-i", fields["file"],
+                "-ss", f"{fields['start_timestamp']}",
+                "-to", f"{fields['end_timestamp']}",
+                f"{config['COLLECTION_MEDIA_DIR']}{fields['file_name']}"
+            ]
+    except requests.exceptions.RequestException as e:
+        pass
 
     process = subprocess.Popen(ffmpeg_command)
     process.wait()
@@ -185,8 +190,7 @@ def main():
         if value in fields_mpv and fields_mpv[value] != "":
             fields[key] = fields_mpv[value]
 
-    ffmpeg_call(fields_mpv)
-    return add_anki_card(f'"{config["deck"]}"', config["note_type"], fields)
+    return add_anki_card(f'"{config["deck"]}"', config["note_type"], fields, fields_mpv)
 
 if __name__ == '__main__':
     ret = main()

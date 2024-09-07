@@ -66,12 +66,6 @@ function create_anki_card(word)
 
     start_timestamp = curr_time - seconds_to_replay
     end_timestamp = curr_time + seconds_to_replay
-    --if start_timestamp == nil and end_timestamp == nil then
-    --    start_timestamp = curr_time - seconds_to_replay
-    --    end_timestamp = curr_time + seconds_to_replay
-    --elseif end_timestamp < start_timestamp then
-    --    end_timestamp = curr_time + seconds_to_replay
-    --end
 
     local fields = {}
 
@@ -96,11 +90,11 @@ function create_anki_card(word)
         mp.osd_message("✔")
     else
         mp.osd_message(ret["stdout"], 2.0)
+        mp.msg.error(ret["stdout"])
     end
 
-    start_timestamp = nil
-    end_timestamp = nil
-    mp.add_timeout("0.25", reset_property)
+    mp.add_timeout("0.25", function()
+    end)
 end
 
 mp.add_key_binding("b", "create-anki-card", function()
@@ -110,4 +104,3 @@ mp.add_key_binding("b", "create-anki-card", function()
         replace = true
     }, "replace")
 end)
-
