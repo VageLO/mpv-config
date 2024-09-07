@@ -37,7 +37,7 @@ def add_anki_card(deck, model, fields):
     return send_to_anki("addNote", params)
 
 def ffmpeg_call(fields):
-    
+
     ffmpeg_command = [
         "ffmpeg",
         "-i", fields["file"],
@@ -50,6 +50,16 @@ def ffmpeg_call(fields):
         f"{config['COLLECTION_MEDIA_DIR']}{fields['file_name']}"
     ]
 
+    res = requests.head(fields["file"])
+    if res.status_code == 200:
+        ffmpeg_command = [
+            "ffmpeg",
+            "-i", fields["file"],
+            "-ss", f"{fields['start_timestamp']}",
+            "-to", f"{fields['end_timestamp']}",
+            f"{config['COLLECTION_MEDIA_DIR']}{fields['file_name']}"
+        ]
+
     process = subprocess.Popen(ffmpeg_command)
     process.wait()
 
@@ -60,12 +70,12 @@ def getNoteFields():
         "action": "findNotes",
         "version": 6,
         "params": {
-            "query": f'deck:"{config["deck"]}"',  # Modify this to your desired deck name or query
+            "query": f'deck:"{config["deck"]}"',
         }
     }
     res = requests.post(anki_connect_url, json.dumps(payload))
     if res.status_code != 200:
-        return {"error": False}
+        return {"error": res.status_code}
     
     note_ids = res.json()["result"]
     payload = {
@@ -79,7 +89,7 @@ def getNoteFields():
     res = requests.post(anki_connect_url, json.dumps(payload))
     
     if res.status_code != 200:
-        return {"error": False}
+        return {"error": res.status_code}
     res = res.json()
     if res["error"] != None:
         return {"error": res["error"]}
