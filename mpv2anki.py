@@ -60,6 +60,7 @@ def ffmpeg_call(fields):
                 "-i", fields["file"],
                 "-ss", f"{fields['start_timestamp']}",
                 "-to", f"{fields['end_timestamp']}",
+                "-c", "copy",
                 f"{config['COLLECTION_MEDIA_DIR']}{fields['file_name']}"
             ]
     except requests.exceptions.RequestException as e:

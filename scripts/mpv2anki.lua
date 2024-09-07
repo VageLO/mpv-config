@@ -93,6 +93,8 @@ function create_anki_card(word)
         mp.msg.error(ret["stdout"])
     end
 
+    start_timestamp = nil
+    end_timestamp = nil
     mp.add_timeout("0.25", function()
     end)
 end
