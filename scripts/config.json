@@ -4,6 +4,7 @@
     "COLLECTION_MEDIA_DIR": "/home/vagelo/.local/share/Anki2/main/collection.media/",
     "CONNECT_URL": "http://localhost:8765",
     "PYTHON_HELPER_PATH": "/home/vagelo/.config/mpv/mpv2anki.py",
+    "PYTHON_TVSHOWS": "/home/vagelo/.config/mpv/tvshows.py",
     "note_fields": {
         "Word": "word",
         "Meaning": "meaning",
