@@ -22,7 +22,7 @@ def getNumberOfSeasons(tvShow):
     }
 
 
-def getNumberOfEpisodes(tvShowID, selectedSeason):
+def getNumberOfEpisodes(tvShowID, selectedSeason, part):
 
     url = f"https://api.tvmaze.com/shows/{tvShowID}/seasons"
 
@@ -39,7 +39,7 @@ def getNumberOfEpisodes(tvShowID, selectedSeason):
     for num in range(1, numberEpisodesFromApi + 1):
         if num < 10:
             num = f'0{num}'
-        url = f"https://s2.streamani.top/video1/sPJovTKxdbYSMrAPAHgaiA/1725819948/familyguy/{selectedSeason}/original/{selectedSeason}{num}.mp4"
+        url = f"https://s2.streamani.top/video1/sPJovTKxdbYSMrAPAHgaiA/1725819948/{part}/{selectedSeason}/original/{selectedSeason}{num}.mp4"
         res = requests.head(url)
         if res.status_code != 200:
             continue
@@ -47,7 +47,7 @@ def getNumberOfEpisodes(tvShowID, selectedSeason):
 
     return {
         "episodes": numberEpisodes,
-        "url": f"https://s2.streamani.top/video1/sPJovTKxdbYSMrAPAHgaiA/1725819948/familyguy/{selectedSeason}/original/{selectedSeason}",
+        "url": f"https://s2.streamani.top/video1/sPJovTKxdbYSMrAPAHgaiA/1725819948/{part}/{selectedSeason}/original/{selectedSeason}",
     }
 
 
@@ -65,7 +65,7 @@ def main():
     if 'showID' in args:
         if 'selectedSeason' in args:
             result = getNumberOfEpisodes(
-                args["showID"], args["selectedSeason"])
+                args["showID"], args["selectedSeason"], args["part"])
 
     if 'show' in args:
         result = getNumberOfSeasons(args["show"])

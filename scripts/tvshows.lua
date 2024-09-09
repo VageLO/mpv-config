@@ -92,6 +92,7 @@ local function getEpisodes(season)
     local args = {}
     args["showID"] = fields["showID"]
     args["selectedSeason"] = season
+    args["part"] = fields["part"]
     fields = {}
 
     local data = pythonCommand(args)
@@ -108,7 +109,7 @@ local function enteredSeasonNumber(season, err, flag)
 end
 
 
-local function getSeasons(tvshow)
+function getSeasons(tvshow)
 
     fields = {}
     fields["show"] = tvshow
@@ -122,11 +123,16 @@ local function getSeasons(tvshow)
 
 end
 
-local function enteredTVShow(show, err, flag)
-    if not show then return end
-    getSeasons(show)
-end
+--local function enteredTVShow(show, err, flag)
+--    if not show then return end
+--    getSeasons(show)
+--end
 
-mp.add_key_binding("p", "select-tvshow", function()
-    displayInput("TV Show", enteredTVShow)
+--mp.add_key_binding("p", "select-tvshow", function()
+--    displayInput("TV Show", enteredTVShow)
+--end)
+
+mp.register_script_message("enter-show", function (show, linkPart)
+    getSeasons(show)
+    fields["part"] = linkPart
 end)
