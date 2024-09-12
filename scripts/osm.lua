@@ -1,4 +1,3 @@
-
 --[[
 
 https://github.com/stax76/mpv-scripts
@@ -74,7 +73,7 @@ Configuration: ~~/script-opts/osm.conf
 If the command contains 'keep-open' in the comment,
 the menu stays open after the command is executed.
 
-]]--
+]] --
 
 ----- options
 
@@ -168,7 +167,7 @@ function show(name)
     end
 
     if lists[name] == nil then
-        local list = dofile(mp.command_native({"expand-path", "~~/script-modules/scroll-list.lua"}))
+        local list = dofile(mp.command_native({ "expand-path", "~~/script-modules/scroll-list.lua" }))
 
         list.name = name
         list.menu = menu
@@ -202,8 +201,8 @@ function show(name)
 
         list.keybinds = {}
 
-        add_keys(list, o.key_scroll_down, 'scroll_down', function() list:scroll_down() end, {repeatable = true})
-        add_keys(list, o.key_scroll_up, 'scroll_up', function() list:scroll_up() end, {repeatable = true})
+        add_keys(list, o.key_scroll_down, 'scroll_down', function() list:scroll_down() end, { repeatable = true })
+        add_keys(list, o.key_scroll_up, 'scroll_up', function() list:scroll_up() end, { repeatable = true })
         add_keys(list, o.key_move_pageup, 'move_pageup', function() list:move_pageup() end, {})
         add_keys(list, o.key_move_pagedown, 'move_pagedown', function() list:move_pagedown() end, {})
         add_keys(list, o.key_move_begin, 'move_begin', function() list:move_begin() end, {})
@@ -217,11 +216,25 @@ function show(name)
     lists[name]:open()
 end
 
-mp.register_script_message("show-menu", function (name)
+mp.register_script_message("show-menu", function(name)
     show(name)
 end)
 
-menu_conf_path = mp.command_native({"expand-path", "~~/script-opts"}) .. "/osm-menu.conf"
+mp.register_script_message("add-to-menu", function(menu, title, command)
+    if menus[menu] == nil then
+        menus[menu] = {}
+    end
+    table.insert(menus[menu], { title, command })
+end)
+
+mp.register_script_message("clear-menu", function(name)
+    if lists[name] ~= nil then
+        lists[name] = nil
+        menus[name] = nil
+    end
+end)
+
+menu_conf_path = mp.command_native({ "expand-path", "~~/script-opts" }) .. "/osm-menu.conf"
 
 ini = read_ini(menu_conf_path)
 
@@ -230,7 +243,7 @@ for k, v in pairs(ini.ini) do
         menus[k] = {}
 
         for _, v2 in ipairs(ini.key_order[k]) do
-            table.insert(menus[k], { v2, v[v2]})
+            table.insert(menus[k], { v2, v[v2] })
         end
     end
 end
