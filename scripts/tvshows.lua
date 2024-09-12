@@ -30,10 +30,10 @@ local function displayInput(message, func)
     }, "replace")
 end
 
-local function pythonCommand(args) 
+local function pythonCommand(args)
     args = json.encode(args)
     local handle, err = io.popen([[python]] .. " " .. PYTHON_TVSHOWS .. " '" .. args .. "'")
-    
+
     local result = handle:read("*a")
     handle:close()
     print(json.encode(result))
@@ -67,6 +67,7 @@ local function openEpisode(episode)
     end
 
     mp.commandv("loadfile", fields["url"] .. episode .. ".mp4")
+    mp.command("set pause no")
 end
 
 local function enteredEpisodeNumber(episode, err, flag)
@@ -100,7 +101,7 @@ local function getEpisodes(season)
     fields["episodes"] = data["episodes"]
     fields["url"] = data["url"]
 
-    displayInput("Episode ".."(1 - "..fields["episodes"]..")", enteredEpisodeNumber)
+    displayInput("Episode " .. "(1 - " .. fields["episodes"] .. ")", enteredEpisodeNumber)
 end
 
 local function enteredSeasonNumber(season, err, flag)
@@ -110,17 +111,15 @@ end
 
 
 function getSeasons(tvshow)
-
     fields = {}
     fields["show"] = tvshow
 
     local data = pythonCommand(fields)
-    
+
     fields["seasons"] = data["seasons"]
     fields["showID"] = data["showID"]
 
-    displayInput("Season ".."(1 - "..fields["seasons"]..")", enteredSeasonNumber)
-
+    displayInput("Season " .. "(1 - " .. fields["seasons"] .. ")", enteredSeasonNumber)
 end
 
 --local function enteredTVShow(show, err, flag)
@@ -132,7 +131,7 @@ end
 --    displayInput("TV Show", enteredTVShow)
 --end)
 
-mp.register_script_message("enter-show", function (show, linkPart)
+mp.register_script_message("enter-show", function(show, linkPart)
     getSeasons(show)
     fields["part"] = linkPart
 end)
