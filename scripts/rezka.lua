@@ -54,13 +54,14 @@ function getData(tvshow)
     fields = {}
     fields["show"] = tvshow
 
+    mp.osd_message("Searching...", 3)
     local result = pythonCommand(fields)
 
     local jsonStr = result:gsub("'", '"')
     local data, pos, err = json.decode(jsonStr, 1, nil)
 
     if err then
-        print("Error decoding JSON:", err)
+        mp.osd_message("Error decoding JSON: " .. err, 5)
         return
     end
 
