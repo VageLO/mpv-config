@@ -114,13 +114,13 @@ local function loadSubtitles(url, title)
     mp.commandv("sub-add", url, "auto", title)
 end
 
-mp.register_event("playback-restart", function()
-    local duration = mp.get_property("duration")
-    if duration then
+mp.register_event("file-loaded", function()
+    local filename = mp.get_property("filename")
+    if filename then
         if subs == nil then
             return
         end
-        mp.msg.info("Playback restarted, duration: " .. duration .. " seconds.")
+        mp.osd_message(filename .. " loaded", 3)
         for _, sub in ipairs(subs) do
             print(sub["name"] .. " loaded")
             loadSubtitles(sub["url"], sub["name"])
