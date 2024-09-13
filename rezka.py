@@ -5,18 +5,26 @@ from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import WebDriverException
 
-options = webdriver.ChromeOptions()
-options.add_argument("--headless")
-options.add_argument("--window-size=1920,1080")
-options.add_argument(
-    "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36")
-options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
+try:
 
-driver = webdriver.Chrome(options=options)
+    options = webdriver.ChromeOptions()
+    options.add_argument("--headless")
+    options.add_argument("--window-size=1920,1080")
+    options.add_argument(
+        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36")
+    options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
 
-driver.execute_cdp_cmd('Network.enable', {})
-driver.execute_cdp_cmd('Debugger.enable', {})
+    driver = webdriver.Chrome(options=options)
+
+    driver.execute_cdp_cmd('Network.enable', {})
+    driver.execute_cdp_cmd('Debugger.enable', {})
+
+except WebDriverException as e:
+    sys.stdout.write(
+        str({"error": f"ChromeDriver is not installed. \n{e}"}))
+    sys.exit(1)
 
 
 def get(url):
