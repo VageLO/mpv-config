@@ -70,8 +70,7 @@ def ensureDoubleQuotes(string):
 
 def parseToJson(body):
 
-    # source = re.search(r'source:\s({.*}\]\\n\\t\\t\\t})', body)
-    source = re.search(r'source:\s({.*\]\\n\\t\\t\\t})', body)
+    source = re.search(r'source:\s({.*}\](?:\\n){1,}(?:\\t){1,}})', body)
     # playlist = re.search(r'playlist:\s({.*}]\\n\\t\\t\\t})', body)
     seasons = re.search(r'seasons:(\[{.*}\])', body)
 
