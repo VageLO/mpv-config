@@ -100,26 +100,11 @@ local function isArray(t)
     return count > 0
 end
 
-local function splitUrl(url)
-    local params = {}
-    for param in string.gmatch(url, "([^&]+)") do
-        table.insert(params, param)
-    end
-    return params
-end
-
 local function loadVideo(url)
     if url == nil then
         mp.osd_message("loadVideo: url is nil", 5)
     end
 
-    local params = splitUrl(url)
-    if #params == 0 then
-        mp.osd_message("splitUrl: url is empty", 5)
-        return
-    end
-
-    url = params[1]
     mp.msg.info("Loading URL: " .. url)
     mp.osd_message("Video is loading. Wait a minute!", 5)
 
