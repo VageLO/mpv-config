@@ -2,13 +2,14 @@ import json
 import sys
 import re
 import logging
+import time
 from selenium import webdriver
 from selenium.webdriver.common.by import By
 from selenium.webdriver.common.action_chains import ActionChains
 #from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.support import expected_conditions as EC
-from selenium.webdriver.support.ui import WebDriverWait as wait
-from selenium.common.exceptions import WebDriverException
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.common.exceptions import WebDriverException, ElementNotInteractableException
 
 class Browser:
 
@@ -22,7 +23,7 @@ class Browser:
 
             options.add_argument("--headless")
             options.add_argument("--window-size=1920,1080")
-            options.add_argument("--auto-open-devtools-for-tabs")
+            #options.add_argument("--auto-open-devtools-for-tabs")
             options.add_argument("--disable-features=IsolateOrigins,site-per-process")
             options.add_argument("--disable-site-isolation-trials")
             options.add_argument(f"user-agent={self.userAgent}")
@@ -33,9 +34,13 @@ class Browser:
             #driver = webdriver.Chrome(service=service, options=options)
             driver = webdriver.Chrome(options=options)
         
+            #driver.set_window_position(1920, 0)
+
             driver.execute_cdp_cmd('Network.enable', {})
             driver.execute_cdp_cmd('Debugger.enable', {})
+
             self.driver = driver
+            self.wait = WebDriverWait(self.driver, 10)
         
         except WebDriverException as e:
             sys.stdout.write(
@@ -58,53 +63,75 @@ class Browser:
                     #elif request:
                     #    logging.info(request)
 
-    def get(self, url):
+    def getAndMoveToIframe(self, url):
         self.driver.get(url)
-        
         frame = self.driver.find_element(By.TAG_NAME, "iframe")
 
         actions = ActionChains(self.driver)
         actions.move_to_element(frame).perform()
 
-        wait(self.driver, 5).until(EC.frame_to_be_available_and_switch_to_it((By.TAG_NAME, "iframe")))
-        list_item = wait(self.driver, 5).until(EC.element_to_be_clickable((By.CLASS_NAME, "list__item")))
+        self.wait.until(EC.frame_to_be_available_and_switch_to_it((By.TAG_NAME, "iframe")))
 
-        button_list = wait(self.driver, 5).until(EC.presence_of_all_elements_located((By.CLASS_NAME, "list__drop-item")))
+    def __getListItem(self):
+        return self.wait.until(EC.element_to_be_clickable((By.CLASS_NAME, "list__item")))
+
+    def __getListDropItem(self):
+        return self.wait.until(EC.presence_of_all_elements_located((By.CLASS_NAME, "list__drop-item")))
+
+    def __settingButton(self):
+        return self.wait.until(EC.presence_of_element_located((By.XPATH, '/html/body/div[2]/pjsdiv/pjsdiv[20]/pjsdiv[3]')))
+
+    def __subtitleMenuItem(self):
+        return self.wait.until(EC.presence_of_element_located((By.CSS_SELECTOR, 'pjsdiv[fid="3"]')))
+
+    def __selectSubtitles(self):
+        subs = self.wait.until(EC.presence_of_all_elements_located((By.CSS_SELECTOR, "[f2id]")))
+
+        for i in range(len(subs)):
+            f2id = int(subs[i].get_attribute("f2id"))
+
+            if f2id > 2: 
+                sub_button = self.__subtitleMenuItem()
+                setting_button = self.__settingButton()
+                stale = self.wait.until(EC.staleness_of(setting_button))
+                setting_button = self.__settingButton()
+
+                setting_button.click() 
+                sub_button.click()
+
+            elif f2id == 2:
+                if subs[i].is_displayed():
+                    subs[i].click()
+
+    def player(self):
+        list_item = self.__getListItem()
+        button_list = self.__getListDropItem()
+        setting_button = self.__settingButton()
+
         for button in button_list:
-            fileId = button.get_attribute("data-id-file-s")
-            if fileId == "":
-                fileId = button.get_attribute("data-id-file")
+            file_id = button.get_attribute("data-id-file-s")
+            if file_id == "":
+                file_id = button.get_attribute("data-id-file")
 
             # drop down button
-            wait(self.driver, 5).until(EC.element_to_be_clickable(list_item)).click()
+            self.wait.until(EC.element_to_be_clickable(list_item)).click()
 
-            wait(self.driver, 5).until(EC.element_to_be_clickable(button)).click()
+            self.wait.until(EC.element_to_be_clickable(button)).click()
 
             # setting button
-            settings = wait(self.driver, 5).until(EC.visibility_of_element_located((By.XPATH, '/html/body/div[2]/pjsdiv/pjsdiv[20]/pjsdiv[3]')))
-            settings.click()
+            self.wait.until(EC.element_to_be_clickable(setting_button)).click()
 
-            # Subtitles
-            sub_button = self.driver.find_element(By.CSS_SELECTOR, 'pjsdiv[fid="3"]')
+            sub_button = self.__subtitleMenuItem()
             if sub_button.is_displayed():
                 sub_button.click()
-                subs = self.driver.find_elements(By.CSS_SELECTOR, "[f2id]")
+                self.__selectSubtitles()
 
-                for sub in subs:
-                    if int(sub.get_attribute("f2id")) > 2: 
-                        # TODO:
-                        wait(self.driver, 5).until(EC.element_to_be_clickable(settings)).click()
-                        sub_button.click()
-                        sub.click()
-                        pass
-
-                    sub.click()
-
-            self.captureNetwork(fileId)
+            self.captureNetwork(file_id)
 
 def main():
     browser = Browser()
-    browser.get("https://rezka.biz/filmy/99515-voron.html")
+    browser.getAndMoveToIframe("https://rezka.biz/filmy/99515-voron.html")
+    browser.player()
 
 if __name__ == "__main__":
     main()
