@@ -77,33 +77,21 @@ class AnkiConnect:
             fields = note_info["fields"].keys()
             return fields
 
-    # fields_mpv = {
-    #     "word": "",
-    #     "sub_text": "fdjfd fjdf",
-    #     "file_name": "file name"
-    # }
-    # anki_note_fields = getNoteFields()
+    def noteFields(self, fields_mpv):
+        config_fields = self.config["note_fields"]
 
-    # ret = create_deck_if_not_exists(config["deck"])
-    # if ret["error"] != None:
-    #     return ret["error"]
+        fields = {}
 
-    # if fields_mpv["word"] != "":
-    #     fields_mpv.update(webScrapData(fields_mpv["word"]))
-    # else: fields_mpv["word"] = fields_mpv["sub_text"]
-    # 
-    # config_fields = config["note_fields"]
+        for key, value in config_fields.items():
+            if isinstance(value, list):
+                for val in value:
+                    if val in fields_mpv and fields_mpv[val] != "":
+                        if key in fields: 
+                            fields[key] += fields_mpv[val]
+                        else: 
+                            fields[key] = fields_mpv[val]
+                continue
+            if value in fields_mpv and fields_mpv[value] != "":
+                fields[key] = fields_mpv[value]
 
-    # fields = {}
-
-    # for key, value in config_fields.items():
-    #     if isinstance(value, list):
-    #         for val in value:
-    #             if val in fields_mpv and fields_mpv[val] != "":
-    #                 if key in fields: 
-    #                     fields[key] += fields_mpv[val]
-    #                 else: 
-    #                     fields[key] = fields_mpv[val]
-    #         continue
-    #     if value in fields_mpv and fields_mpv[value] != "":
-    #         fields[key] = fields_mpv[value]
+        return fields
