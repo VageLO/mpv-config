@@ -231,7 +231,7 @@ mp.register_script_message("parse", function(url)
 
     local newData, pos, err = json.decode(data, 1, nil)
     if err then
-        print(err)
+        mp.osd_message(err)
         return
     end
 

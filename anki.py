@@ -16,7 +16,7 @@ class AnkiConnect:
         sys.exit(1)
 
     def __request(self, action, params):
-        return json.dumps({"action": action, "params": params, "version": 6})
+        return {"action": action, "params": params, "version": 6}
     
     def __invoke(self, json):
         try: 
@@ -31,7 +31,7 @@ class AnkiConnect:
             if error != None:
                 self.__error(error)
 
-            return response["result"]
+            return response
         except requests.exceptions.ConnectionError as e:
             self.__error(e)
 
@@ -39,7 +39,7 @@ class AnkiConnect:
         json = self.__request("changeDeck", {"cards": [], "deck": deck})
         return self.__invoke(json)
 
-    def addNote(deck, model, fields):
+    def addNote(self, deck, model, fields):
         params = {
             "note": {
                 "deckName": deck,
@@ -58,18 +58,16 @@ class AnkiConnect:
             "query": f'deck:"{self.config["deck"]}"',
         }
         json = self.__request("findNotes", params)
-        response = self.__invoke(json)
-        
-        return response
+        return self.__invoke(json)
 
-    def notesInfo(self):
+    def notesInfo(self, note_ids):
         params = {
             "notes": note_ids,
         }
         json = self.__request("notesInfo", params)
         response = self.__invoke(json)
     
-        notes_info = response 
+        notes_info = response["result"]
 
         for note_info in notes_info:
             if note_info["modelName"] != self.config["note_type"]:

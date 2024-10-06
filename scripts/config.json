@@ -1,5 +1,5 @@
 {
-    "deck": "Master Deck::English::Words",
+    "deck": "01 English::Words",
     "note_type": "Custom: English",
     "COLLECTION_MEDIA_DIR": "/home/vagelo/.local/share/Anki2/main/collection.media/",
     "CONNECT_URL": "http://localhost:8765",

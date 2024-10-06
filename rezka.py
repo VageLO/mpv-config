@@ -13,7 +13,7 @@ try:
     options.add_argument("--headless")
     options.add_argument("--window-size=1920,1080")
     options.add_argument(
-        "user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36")
+        "user-agent=Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36")
     options.set_capability('goog:loggingPrefs', {'performance': 'ALL'})
 
     driver = webdriver.Chrome(options=options)
@@ -87,7 +87,7 @@ def parseToJson(body):
             '\\n', '').replace('\\t', '').strip()
 
         json_string = json_string.replace("'", '"')
-        json_string = ensureDoubleQuotes(json_string)
+        #json_string = ensureDoubleQuotes(json_string)
         data = json.loads(json_string)
         if seasons is not None:
             data = sorted(data, key=lambda x: x['season'])
