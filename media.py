@@ -44,6 +44,10 @@ class Media:
         isFile = self.__checkFile()
         isUrl = self.__checkUrl()
 
+        _, ext = os.path.splitext(fields['file_name'])
+        if ext == '':
+            fields['file_name'] = f'{int(time.time())}.mp4'
+
         match(isFile, isUrl):
             case (True, False):
                 ffmpeg_command = [
@@ -69,7 +73,7 @@ class Media:
                     "-map", f"0:{fields['aid']}",
                     "-map", f"0:{fields['vid']}",
                     "-c", "copy",
-                    f"{self.config['COLLECTION_MEDIA_DIR']}{int(time.time())}"
+                    f"{self.config['COLLECTION_MEDIA_DIR']}{fields['file_name']}"
                 ]
 
                 self.__ffmpeg(ffmpeg_command)
