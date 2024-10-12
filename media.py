@@ -35,26 +35,27 @@ class Media:
     def __ffmpeg(self, command):
         try:
             process = subprocess.Popen(command)
-            #process.wait()
+            process.wait()
         except Exception as e:
             self.__error(e)
     
+    def ensureExtension(self):
+        _, ext = os.path.splitext(self.fields['file_name'])
+        if ext == '':
+            self.fields['file_name'] = f'{int(time.time())}.mp4'
+
     def copy(self):
         fields = self.fields
         isFile = self.__checkFile()
         isUrl = self.__checkUrl()
 
-        _, ext = os.path.splitext(fields['file_name'])
-        if ext == '':
-            fields['file_name'] = f'{int(time.time())}.mp4'
-
         match(isFile, isUrl):
             case (True, False):
                 ffmpeg_command = [
                     "ffmpeg",
-                    "-i", fields["file"],
                     "-ss", f"{fields['start_timestamp']}",
                     "-to", f"{fields['end_timestamp']}",
+                    "-i", fields["file"],
                     "-map", f"0:{fields['aid']}",
                     "-map", f"0:{fields['sid']}",
                     "-map", f"0:{fields['vid']}",
@@ -67,9 +68,9 @@ class Media:
             case (False, True):
                 ffmpeg_command = [
                     "ffmpeg",
-                    "-i", fields["file"],
                     "-ss", f"{fields['start_timestamp']}",
                     "-to", f"{fields['end_timestamp']}",
+                    "-i", fields["file"],
                     "-map", f"0:{fields['aid']}",
                     "-map", f"0:{fields['vid']}",
                     "-c", "copy",

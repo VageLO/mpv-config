@@ -16,13 +16,21 @@ def main():
     anki = AnkiConnect(config_path)
     media = Media(config_path, fields_mpv)
 
-    media.copy()
+    media.ensureExtension()
 
-    fields = anki.noteFields(fields_mpv) 
+    anki_fields = fields_mpv.copy()
+    anki_fields['file_name'] = f'[sound:{anki_fields["file_name"]}]'
+    anki_fields['sub_text'] = f'<ul><li>{anki_fields["sub_text"]}</li></ul>'
+
+    anki_fields = anki.noteFields(anki_fields) 
     deck = f'"{config["deck"]}"'
     anki.ensureDeckExist(deck)
     
-    return anki.addNote(deck, config["note_type"], fields)
+    result = anki.addNote(deck, config["note_type"], anki_fields)
+    if result['error'] is not None:
+        return result
+
+    media.copy()
 
 if __name__ == '__main__':
     result = main()

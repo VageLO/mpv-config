@@ -65,10 +65,9 @@ class AnkiConnect:
             "notes": note_ids,
         }
         json = self.__request("notesInfo", params)
-        response = self.__invoke(json)
+        return self.__invoke(json)
     
-        notes_info = response["result"]
-
+    def checkFields(self, notes_info):
         for note_info in notes_info:
             if note_info["modelName"] != self.config["note_type"]:
                 continue
@@ -93,3 +92,20 @@ class AnkiConnect:
                 fields[key] = fields_mpv[value]
 
         return fields
+    
+    def UpdateNoteFields(self, id, field, value):
+        fields = {
+            field: value
+        }
+
+        note = {
+            'id': id,
+            'fields': fields,
+        }
+
+        params = {
+            'note': note,
+        }
+
+        json = self.__request(action='updateNoteFields', params=params)
+        return self.__invoke(json=json)
