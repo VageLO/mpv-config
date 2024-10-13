@@ -9,7 +9,6 @@
     "note_fields": {
         "Word": "word",
         "Meaning": "meaning",
-        "Examples": ["sub_text", "example"],
         "Video": "file_name",
         "WordForm": "word_form",
         "Image": "image",
