@@ -30,6 +30,7 @@ def main():
     if result['error'] is not None:
         return result
 
+    anki.suspendCard(result['result'])
     media.copy()
 
 if __name__ == '__main__':

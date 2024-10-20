@@ -37,9 +37,15 @@ function create_anki_card(word)
     local audio_track = 0
     local video_track = 0
 
+    if sub_text == nil then
+        sub_text = ""
+    end
+
     if sub_text == "" and word == "" then
         mp.osd_message("Select subtitles or write word!💢")
         return
+    elseif sub_text ~= "" and word == "" then
+        word = sub_text
     end
 
     mp.osd_message("🔃 Adding to Anki")
@@ -60,9 +66,7 @@ function create_anki_card(word)
     end
 
     local curr_time = mp.get_property_number("time-pos")
-    if sub_text == nil then
-        sub_text = ""
-    end
+    
 
     start_timestamp = curr_time - seconds_to_replay
     end_timestamp = curr_time + seconds_to_replay

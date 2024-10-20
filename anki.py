@@ -109,3 +109,12 @@ class AnkiConnect:
 
         json = self.__request(action='updateNoteFields', params=params)
         return self.__invoke(json=json)
+    
+    def suspendCard(self, card: int):
+        params = {
+            'cards': [card],
+        }
+
+        json = self.__request(action='suspend', params=params)
+        return self.__invoke(json=json)
+
