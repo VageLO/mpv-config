@@ -39,7 +39,7 @@ def getNumberOfEpisodes(tvShowID, selectedSeason, part):
     for num in range(1, numberEpisodesFromApi + 1):
         if num < 10:
             num = f'0{num}'
-        url = f"https://s2.streamani.top/video1/sPJovTKxdbYSMrAPAHgaiA/1725819948/{part}/{selectedSeason}/original/{selectedSeason}{num}.mp4"
+        url = f"https://s3.streamani.top/video1/BhcfuSh5dWKu9KmZ1jh_jg/1734188744/{part}/{selectedSeason}/original/{selectedSeason}{num}.mp4"
         res = requests.head(url)
         if res.status_code != 200:
             continue
@@ -47,7 +47,7 @@ def getNumberOfEpisodes(tvShowID, selectedSeason, part):
 
     return {
         "episodes": numberEpisodes,
-        "url": f"https://s2.streamani.top/video1/sPJovTKxdbYSMrAPAHgaiA/1725819948/{part}/{selectedSeason}/original/{selectedSeason}",
+        "url": f"https://s3.streamani.top/video1/BhcfuSh5dWKu9KmZ1jh_jg/1734188744/{part}/{selectedSeason}/original/{selectedSeason}",
     }
 
 
