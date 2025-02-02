@@ -6,6 +6,7 @@
     "PYTHON_HELPER_PATH": "/home/vagelo/.config/mpv/mpv2anki.py",
     "PYTHON_TVSHOWS": "/home/vagelo/.config/mpv/tvshows.py",
     "PYTHON_REZKA": "/home/vagelo/.config/mpv/rezka.py",
+    "PYTHON_PUB": "/home/vagelo/.config/mpv/kinopub.py",
     "note_fields": {
         "Word": "word",
         "Meaning": "meaning",

@@ -34,7 +34,7 @@ def get(url):
     li_list = driver.find_elements(By.TAG_NAME, 'li')
     for li in li_list:
         data_src = li.get_attribute('data-src')
-        if data_src and re.search(r'https://api\.ninsel\.ws', data_src):
+        if data_src and re.search(r'https://api\.embess\.ws', data_src):
             driver.get(data_src)
             return captureNetwork(data_src)
 
