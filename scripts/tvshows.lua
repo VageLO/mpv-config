@@ -3,6 +3,7 @@ package.path = mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) 
 utils = require 'mp.utils'
 local json = require 'dkjson'
 local input = require "user-input-module"
+local custom = require "custom-input"
 
 local scripts_dir = mp.find_config_file("scripts")
 local file = io.open(scripts_dir .. "/config.json", "r")
@@ -70,6 +71,13 @@ local function openEpisode(episode)
     mp.command("set pause no")
 end
 
+mp.register_event("file-loaded", function ()
+    local filename = mp.get_property('filename')
+    local parts = custom.split(filename, "%.")
+    local sub = fields["sub"] .. parts[1] .. ".vtt"
+    custom.file_loaded(sub)
+end)
+
 local function enteredEpisodeNumber(episode, err, flag)
     if not episode then return end
     openEpisode(episode)
@@ -100,6 +108,7 @@ local function getEpisodes(season)
 
     fields["episodes"] = data["episodes"]
     fields["url"] = data["url"]
+    fields["sub"] = data["sub"]
 
     displayInput("Episode " .. "(1 - " .. fields["episodes"] .. ")", enteredEpisodeNumber)
 end

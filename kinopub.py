@@ -38,10 +38,13 @@ def get_source_or_seasons(translator_id, url):
     driver.get(url)
 
     seasons = {}
-    li = driver.find_element(By.XPATH, f"//li[@data-translator_id='{translator_id}']")
 
+    li = driver.find_element(By.XPATH, f"//li[@data-translator_id='{translator_id}']")
     li.click()
-    time.sleep(2)
+
+    WebDriverWait(driver, 10).until(
+        EC.invisibility_of_element_located((By.ID, "cdnplayer-preloader"))
+    )
 
     li_seasons = driver.find_elements(By.CLASS_NAME, 'b-simple_season__item')
 
@@ -75,6 +78,10 @@ def get_episode_url(translator):
         EC.presence_of_element_located(
             (By.CSS_SELECTOR, f"li[data-translator_id='{translator['t']}'].active"))
     )
+    WebDriverWait(driver, 10).until(
+        EC.invisibility_of_element_located((By.ID, "cdnplayer-preloader"))
+    )
+    time.sleep(1)
 
     return captureNetwork(driver)
 
@@ -89,6 +96,9 @@ def get(show_url):
     li_translators = driver.find_elements(By.XPATH, "//ul[@id='translators-list']/li")
 
     if not li_translators:
+        WebDriverWait(driver, 10).until(
+            EC.invisibility_of_element_located((By.ID, "cdnplayer-preloader"))
+        )
         # If only video, without audio tracks and seasons 
         return captureNetwork(driver)
 

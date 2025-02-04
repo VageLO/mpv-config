@@ -48,6 +48,7 @@ def getNumberOfEpisodes(tvShowID, selectedSeason, part):
     return {
         "episodes": numberEpisodes,
         "url": f"https://s3.streamani.top/video1/BhcfuSh5dWKu9KmZ1jh_jg/1734188744/{part}/{selectedSeason}/original/{selectedSeason}",
+        "sub": f"https://{part}.mult-fan.tv/captions/eng/{selectedSeason}/"
     }
 
 
