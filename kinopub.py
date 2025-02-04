@@ -5,7 +5,9 @@ import time
 import requests
 from bs4 import BeautifulSoup
 from history import (
+    saveSeasonsOfTranslator,
     searchPhrase,
+    searchSeason,
     searchShow,
     saveShow,
     write,
@@ -230,9 +232,16 @@ def handle_show_search(search_key):
         return result
 
 def handle_translator_url(translator_id, url):
-    result = get_source_or_seasons(translator_id, url)
-    saveShow(result, url)
-    return result
+    try:
+        return searchSeason(url, translator_id)
+    except Exception:
+        result = get_source_or_seasons(translator_id, url)
+        try:
+            saveSeasonsOfTranslator(result, url, translator_id)
+        except Exception:
+            pass
+
+        return result
     
 def handle_url(url):
     try:
