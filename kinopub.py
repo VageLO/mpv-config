@@ -4,12 +4,19 @@ import sys
 import time
 import requests
 from bs4 import BeautifulSoup
+from history import (
+    searchPhrase,
+    searchShow,
+    saveShow,
+    write,
+    read,
+)
 from browser import Browser
 from selenium.webdriver.common.by import By
 from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.support.ui import WebDriverWait
 
-def setLocalStoragePlayerSettings():
+def setLocalStoragePlayerSettings(driver):
     script = """
     localStorage.setItem('pljsquality', '1080p');
     """
@@ -21,6 +28,11 @@ def setLocalStoragePlayerSettings():
     driver.execute_script(script)
 
 def get_source_or_seasons(translator_id, url):
+    try:
+        driver = startBrowser()
+    except Exception as e:
+        return {"error": e}
+
     driver.get(url)
 
     seasons = {}
@@ -32,7 +44,7 @@ def get_source_or_seasons(translator_id, url):
     li_seasons = driver.find_elements(By.CLASS_NAME, 'b-simple_season__item')
 
     if not li_seasons:
-        return captureNetwork()
+        return captureNetwork(driver)
 
     seasons = {}
 
@@ -48,6 +60,11 @@ def get_source_or_seasons(translator_id, url):
     return { "seasons": seasons }
 
 def get_episode_url(translator):
+    try:
+        driver = startBrowser()
+    except Exception as e:
+        return {"error": e}
+
     url = f"{translator['url']}#t:{translator['t']}-s:{translator['s']}-e:{translator['e']}"
 
     driver.get(url)
@@ -57,9 +74,13 @@ def get_episode_url(translator):
             (By.CSS_SELECTOR, f"li[data-translator_id='{translator['t']}'].active"))
     )
 
-    return captureNetwork()
+    return captureNetwork(driver)
 
 def get(show_url):
+    try:
+        driver = startBrowser()
+    except Exception as e:
+        return {"error": e}
 
     driver.get(show_url)
 
@@ -67,7 +88,7 @@ def get(show_url):
 
     if not li_translators:
         # If only video, without audio tracks and seasons 
-        return captureNetwork()
+        return captureNetwork(driver)
 
     translators = []
 
@@ -81,7 +102,7 @@ def get(show_url):
 
     return { "translators": translators }
 
-def captureNetwork():
+def captureNetwork(driver):
     logs = driver.get_log("performance")
 
     result = {
@@ -187,82 +208,60 @@ def findShow(show):
 
     return results
 
+def startBrowser():
+    try:
+        driver = Browser().run()
+        driver.get('https://kinopub.me/')
+        setLocalStoragePlayerSettings(driver)
+        return driver
+    except Exception as e:
+        raise Exception(e)
+
+def handle_show_search(search_key):
+    try:
+        return searchPhrase(search_key)
+    except Exception:
+        result = findShow(search_key)
+
+        saved_history = read()
+        saved_history["search"][search_key] = result
+        write(saved_history)
+
+        return result
+
+def handle_translator_url(translator_id, url):
+    result = get_source_or_seasons(translator_id, url)
+    saveShow(result, url)
+    return result
+    
+def handle_url(url):
+    try:
+        return searchShow(url)
+    except Exception:
+        result = get(url)
+        saveShow(result, url)
+        return result
+
+def handle_translator(translator):
+    return get_episode_url(translator)
+
 def main():
     try:
         args = sys.argv[1]
         args = json.loads(args)
     except Exception as e:
-        return {"error": f'Error {e} {args} {sys.argv}'}
-
-    #except json.JSONDecodeError:
-    #    return {"error": f'Error json decode {args}'}
-
-    #args = {
-    #    # session
-    #    #"session": {
-    #    #    'id': '8062b72ef3bc3712633179323c0836c8',
-    #    #    'url': 'http://localhost:43793'
-    #    #},
-    #    # search video
-    #    #"show": "silo",
-    #    
-    #    # with translators
-    #    "url": "https://kinopub.me/films/detective/1194-sem-1995.html",
-
-    #    # without translators
-    #    #"url": "https://kinopub.me/films/western/76932-lyubiteli-nepriyatnostey-1994.html",
-
-    #    # get source or seasons
-    #    #"url": "https://kinopub.me/series/drama/55680-ukrytie-2023.html",
-    #    #"url": "https://kinopub.me/series/comedy/76717-videozhest-2025.html",
-    #    #"url": "https://kinopub.me/films/detective/1194-sem-1995.html",
-    #    #"translator_id": '238',
-
-    #    # selected episode
-    #    #"translator": {
-    #    #    "url": "https://kinopub.me/series/drama/55680-ukrytie-2023.html",
-    #    #    "t": "238",
-    #    #    "s": "1",
-    #    #    "e": "2"
-    #    #}
-    #}
-
-    global driver
-    result = {}
+        return {"error": f'Error {e} {sys.argv}'}
 
     if 'show' in args:
-        result = findShow(args["show"])
-        return result
-
-    try:
-        #if 'session' in args:
-        #    browser = Browser()
-        #    driver = browser.remote(args['session']['id'], args['session']['url'])
-        #else:
-            driver = Browser().run()
-            driver.get('https://kinopub.me/')
-            setLocalStoragePlayerSettings()
-    except Exception as e:
-        return e
+        search_key = args["show"].strip()
+        return handle_show_search(search_key) 
 
     if 'translator_id' in args and 'url' in args:
-        result = get_source_or_seasons(args["translator_id"], args["url"])
-
+        return handle_translator_url(args["translator_id"], args["url"])
     elif 'url' in args:
-        result = get(args["url"])
-
+        return handle_url(args["url"])
     elif 'translator' in args:
-        result = get_episode_url(args["translator"])
-
-    #if "url" not in result:
-    #    result["session"] = {
-    #        'id': driver.session_id,
-    #        'url': driver.service.service_url
-    #    }
-    driver.close()
-
-    return result
-
+        return handle_translator(args["translator"])
 
 if __name__ == "__main__":
     result = main()
