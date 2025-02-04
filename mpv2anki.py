@@ -23,7 +23,7 @@ def main():
     anki_fields['sub_text'] = f'<ul><li>{anki_fields["sub_text"]}</li></ul>'
 
     anki_fields = anki.noteFields(anki_fields) 
-    deck = f'"{config["deck"]}"'
+    deck = f'{config["deck"]}'
     anki.ensureDeckExist(deck)
     
     result = anki.addNote(deck, config["note_type"], anki_fields)
