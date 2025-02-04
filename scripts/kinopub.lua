@@ -90,20 +90,20 @@ end
 local function displaySeasons(seasons)
     mp.commandv("script-message-to", "osm", "clear-menu", Menu)
 
-    for key, item in pairs(seasons) do
+    for _, item in pairs(seasons) do
         local command = string.format(
             "script-message-to %s %s %s %s",
             Menu,
             "selected_season",
-            key,
-            item
+            item["key"],
+            item["value"]
         )
         mp.commandv(
             "script-message-to",
             "osm",
             "add-to-menu",
             Menu,
-            key,
+            item["key"],
             command
         )
     end
@@ -152,7 +152,8 @@ mp.register_script_message("selected_translator", function(translator_id)
     if not data then
         return
     elseif data["seasons"] ~= nil then
-        displaySeasons(data["seasons"])
+        local sort = custom.sortTableByKey(data["seasons"])
+        displaySeasons(sort)
         return
     end
 

@@ -65,9 +65,10 @@ function M.pythonCommand(args, path)
 end
 
 function M.check(result)
-    -- local jsonStr = result:gsub("'", '"')
-    print(json.encode(result))
+    --local jsonStr = result:gsub("'", '"')
+    print("RAW: "..json.encode(result))
     local data, pos, err = json.decode(result, 1, nil)
+    --print("JSON: "..json.encode(data))
 
     if err then
         mp.osd_message("Error decoding JSON: " .. err, 5)
@@ -83,6 +84,24 @@ function M.check(result)
     end
 
     return data
+end
+
+function M.sortTableByKey(t)
+    local keys = {}
+    for k in pairs(t) do
+        table.insert(keys, k)
+    end
+
+    table.sort(keys, function(a, b)
+        return tonumber(a) < tonumber(b)
+    end)
+
+    local sortedTable = {}
+    for _, k in pairs(keys) do
+        table.insert(sortedTable, {key = k, value = t[k]})
+    end
+
+    return sortedTable
 end
 
 return M
