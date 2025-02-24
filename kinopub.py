@@ -3,7 +3,9 @@ import re
 import sys
 import time
 import requests
+import logging
 from bs4 import BeautifulSoup
+from selenium.common.exceptions import TimeoutException
 from history import (
     saveSeasonsOfTranslator,
     searchPhrase,
@@ -74,14 +76,32 @@ def get_episode_url(translator):
 
     driver.get(url)
 
-    WebDriverWait(driver, 10).until(
-        EC.presence_of_element_located(
-            (By.CSS_SELECTOR, f"li[data-translator_id='{translator['t']}'].active"))
-    )
-    WebDriverWait(driver, 10).until(
-        EC.invisibility_of_element_located((By.ID, "cdnplayer-preloader"))
-    )
-    time.sleep(1)
+    # Reload page until dialog window with error is not visible
+    while True:
+        try:
+            WebDriverWait(driver, 5).until(
+                EC.presence_of_element_located(
+                    (By.ID, "ps-infomessage-title"))
+            )
+            time.sleep(1)
+            driver.execute_script("window.location.reload(true);")
+        except TimeoutException:
+            break
+
+    try:
+        # Wait until button with needed translator_id is active
+        WebDriverWait(driver, 30).until(
+            EC.presence_of_element_located(
+                (By.CSS_SELECTOR, f"li[data-translator_id='{translator['t']}'].active"))
+        )
+        # Wait until preloader is gone
+        WebDriverWait(driver, 30).until(
+            EC.invisibility_of_element_located((By.ID, "cdnplayer-preloader"))
+        )
+    except TimeoutException:
+        return {"error": "Timed out waiting for translator element or preloader"}
+
+    time.sleep(2)
 
     return captureNetwork(driver)
 
@@ -283,6 +303,7 @@ def main():
         return handle_translator(args["translator"])
 
 if __name__ == "__main__":
+    #logging.basicConfig(level=logging.DEBUG)
     result = main()
     result = json.dumps(result)
 

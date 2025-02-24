@@ -31,9 +31,19 @@ def getNumberOfEpisodes(tvShowID, selectedSeason, part):
 
     numberEpisodesFromApi = 0
     for season in seasons:
-        if season["number"] == selectedSeason:
+        if season["number"] != selectedSeason:
+            continue
+
+        if season["episodeOrder"] is not None:
             numberEpisodesFromApi = season["episodeOrder"]
             break
+
+        season_url = season["_links"]["self"]["href"]
+        res = requests.get(f"{season_url}/episodes")
+        episodes = res.json()
+
+        numberEpisodesFromApi = len(episodes)
+        break
 
     numberEpisodes = 0
     for num in range(1, numberEpisodesFromApi + 1):
