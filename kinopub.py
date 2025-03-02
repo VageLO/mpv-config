@@ -292,7 +292,7 @@ def main():
         return {"error": f'Error {e} {sys.argv}'}
 
     if 'show' in args:
-        search_key = args["show"].strip()
+        search_key = args["show"].strip().lower()
         return handle_show_search(search_key) 
 
     if 'translator_id' in args and 'url' in args:
