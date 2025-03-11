@@ -1,6 +1,5 @@
 package.path = mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
 
--- utils = require 'mp.utils'
 local json = require 'dkjson'
 local custom = require "custom-input"
 

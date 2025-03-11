@@ -1,0 +1,6 @@
+[submodule "kinopub"]
+	path = kinopub
+	url = https://github.com/VageLO/mpv-kinopub-mp4
+[submodule "mpv2anki"]
+	path = mpv2anki
+	url = https://github.com/VageLO/mpv2anki
