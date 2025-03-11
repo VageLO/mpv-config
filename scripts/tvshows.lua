@@ -1,24 +1,18 @@
 package.path = mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
 
-utils = require 'mp.utils'
 local json = require 'dkjson'
 local input = require "user-input-module"
 local custom = require "custom-input"
 
-local scripts_dir = mp.find_config_file("scripts")
-local file = io.open(scripts_dir .. "/config.json", "r")
+local config = custom.loadConfig("config.json", "scripts")
 
-if file then
-    local content = file:read("*a")
-    file:close()
-
-    -- Parse JSON into a Lua table
-    config = json.decode(content)
-else
+if config == nil then
     print("Failed to open the JSON file.")
+    return
 end
 
-PYTHON_TVSHOWS = config.PYTHON_TVSHOWS
+UV_TVSHOWS_DIR = config.UV_TVSHOWS
+UV_TVSHOWS = "tvshows.py"
 
 local fields = {}
 
@@ -29,24 +23,6 @@ local function displayInput(message, func)
         request_text = "❤ " .. message .. ":",
         replace = true
     }, "replace")
-end
-
-local function pythonCommand(args)
-    args = json.encode(args)
-    local handle, err = io.popen([[python]] .. " " .. PYTHON_TVSHOWS .. " '" .. args .. "'")
-
-    local result = handle:read("*a")
-    handle:close()
-    print(json.encode(result))
-
-    local jsonStr = result:gsub("'", '"')
-    local data, pos, err = json.decode(jsonStr, 1, nil)
-
-    if err then
-        print("Error decoding JSON:", err)
-    end
-
-    return data
 end
 
 local function openEpisode(episode)
@@ -78,11 +54,10 @@ mp.register_event("file-loaded", function ()
     custom.file_loaded(sub)
 end)
 
-local function enteredEpisodeNumber(episode, err, flag)
+local function enteredEpisodeNumber(episode)
     if not episode then return end
     openEpisode(episode)
 end
-
 
 local function getEpisodes(season)
     local num = tonumber(season)
@@ -104,41 +79,47 @@ local function getEpisodes(season)
     args["part"] = fields["part"]
     fields = {}
 
-    local data = pythonCommand(args)
+    local command = "'"..json.encode(args).."'"
 
-    fields["episodes"] = data["episodes"]
-    fields["url"] = data["url"]
-    fields["sub"] = data["sub"]
+    local data = custom.pythonCommand(
+        command,
+        UV_TVSHOWS_DIR,
+        UV_TVSHOWS
+    )
+    data = custom.check(data)
 
-    displayInput("Episode " .. "(1 - " .. fields["episodes"] .. ")", enteredEpisodeNumber)
+    if data ~= nil then
+        fields["episodes"] = data["episodes"]
+        fields["url"] = data["url"]
+        fields["sub"] = data["sub"]
+
+        displayInput("Episode " .. "(1 - " .. fields["episodes"] .. ")", enteredEpisodeNumber)
+    end
 end
 
-local function enteredSeasonNumber(season, err, flag)
+local function enteredSeasonNumber(season)
     if not season then return end
     getEpisodes(season)
 end
 
-
-function getSeasons(tvshow)
+local function getSeasons(tvshow)
     fields = {}
     fields["show"] = tvshow
+    local command = "'"..json.encode(fields).."'"
 
-    local data = pythonCommand(fields)
+    local data = custom.pythonCommand(
+        command,
+        UV_TVSHOWS_DIR,
+        UV_TVSHOWS
+    )
+    data = custom.check(data)
+    if data ~= nil then
+        fields["seasons"] = data["seasons"]
+        fields["showID"] = data["showID"]
 
-    fields["seasons"] = data["seasons"]
-    fields["showID"] = data["showID"]
-
-    displayInput("Season " .. "(1 - " .. fields["seasons"] .. ")", enteredSeasonNumber)
+        displayInput("Season " .. "(1 - " .. fields["seasons"] .. ")", enteredSeasonNumber)
+    end
 end
-
---local function enteredTVShow(show, err, flag)
---    if not show then return end
---    getSeasons(show)
---end
-
---mp.add_key_binding("p", "select-tvshow", function()
---    displayInput("TV Show", enteredTVShow)
---end)
 
 mp.register_script_message("enter-show", function(show, linkPart)
     getSeasons(show)

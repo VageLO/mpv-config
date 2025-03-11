@@ -54,9 +54,12 @@ function M.displayInput(message, func)
     }, "replace")
 end
 
-function M.pythonCommand(args, path)
-    args = json.encode(args)
-    local handle = io.popen([[python]] .. " " .. path .. " '" .. args .. "'")
+function M.pythonCommand(args, dir, file)
+    --args = json.encode(args)
+    local command = [[uv run]]
+        .. " --directory " .. dir .. " " .. file .. " " .. args
+    print(command)
+    local handle = io.popen(command)
 
     local result = handle:read("*a")
     handle:close()
@@ -65,10 +68,8 @@ function M.pythonCommand(args, path)
 end
 
 function M.check(result)
-    --local jsonStr = result:gsub("'", '"')
     print("RAW: "..json.encode(result))
     local data, pos, err = json.decode(result, 1, nil)
-    --print("JSON: "..json.encode(data))
 
     if err then
         mp.osd_message("Error decoding JSON: " .. err, 5)
@@ -79,7 +80,7 @@ function M.check(result)
         mp.osd_message(data["error"], 5)
         return nil
     elseif not data then
-        mp.osd_message("parse: data is nil", 5)
+        mp.msg.error("parse: data is nil")
         return nil
     end
 

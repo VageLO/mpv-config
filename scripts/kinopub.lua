@@ -1,6 +1,5 @@
 package.path = mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
 
-local json = require 'dkjson'
 local custom = require "custom-input"
 
 local config = custom.loadConfig("config.json", "scripts")
@@ -10,21 +9,23 @@ if config == nil then
     return
 end
 
-PYTHON_PUB = config.PYTHON_PUB
+UV_PUB_DIR = config.UV_PUB
+UV_PUB = "kinopub.py"
 
 local subtitle = ''
 -- transaction id
 local T = ''
 local Url = ''
-local Fields = {}
 local Menu = "kinopub"
 
 local function searchShow(tvshow)
-    Fields = {}
-    Fields["show"] = tvshow
-
     mp.osd_message("Searching...", 3)
-    local result = custom.pythonCommand(Fields, PYTHON_PUB)
+    local command = "show -t ".."'"..tvshow.."'"
+    local result = custom.pythonCommand(
+        command,
+        UV_PUB_DIR,
+        UV_PUB
+    )
     local data = custom.check(result)
 
     if not data then
@@ -49,7 +50,6 @@ local function searchShow(tvshow)
                 item["href"]
             )
         end
-        
         mp.commandv(
             "script-message-to",
             "osm",
@@ -116,11 +116,14 @@ local function enteredTVShow(show)
 end
 
 mp.register_script_message("selected_show", function(url)
-    Fields = {}
-    Fields["url"] = url
     Url = url
+    local command = "translator -u " .. url
 
-    local result = custom.pythonCommand(Fields, PYTHON_PUB)
+    local result = custom.pythonCommand(
+        command,
+        UV_PUB_DIR,
+        UV_PUB
+    )
     local data = custom.check(result)
 
     if not data then
@@ -140,12 +143,13 @@ mp.register_script_message("selected_show", function(url)
 end)
 
 mp.register_script_message("selected_translator", function(translator_id)
-    Fields = {}
-    Fields["url"] = Url
-    Fields["translator_id"] = translator_id
+    local command = "translator -u " .. Url .. " -ti " .. translator_id
     T = translator_id
 
-    local result = custom.pythonCommand(Fields, PYTHON_PUB)
+    local result = custom.pythonCommand(
+        command,
+        UV_PUB_DIR,
+        UV_PUB)
     local data = custom.check(result)
 
     if not data then
@@ -190,14 +194,16 @@ mp.register_script_message("selected_season", function(season, episodes)
 end)
 
 mp.register_script_message("selected_episode", function(season, episode)
-    Fields = {}
-    Fields["translator"] = {}
-    Fields["translator"]["url"] = Url
-    Fields["translator"]["t"] = T
-    Fields["translator"]["s"] = season
-    Fields["translator"]["e"] = episode
+    local command = "translator -u " .. Url
+    command = command .. " -ti " .. T
+    command = command .. " -s " .. season
+    command = command .. " -e " .. episode
 
-    local result = custom.pythonCommand(Fields, PYTHON_PUB)
+    local result = custom.pythonCommand(
+        command,
+        UV_PUB_DIR,
+        UV_PUB)
+
     local data = custom.check(result)
 
     if not data then
@@ -220,7 +226,6 @@ mp.register_event("file-loaded", function ()
 end)
 
 mp.add_key_binding("k", "search-kinopub", function()
-    Fields = {}
     Seasons = {}
     Url = ''
     subtitle = ''

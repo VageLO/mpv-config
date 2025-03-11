@@ -1,31 +1,26 @@
 seconds_to_replay = 2.5
 
 package.path = mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
-utils = require 'mp.utils'
+
 local json = require 'dkjson'
+local custom = require "custom-input"
 local input = require "user-input-module"
 
--- Read the JSON file
+local config = custom.loadConfig("config.json", "scripts")
 local scripts_dir = mp.find_config_file("scripts")
-local file = io.open(scripts_dir .. "/config.json", "r")
-if file then
-    local content = file:read("*a")
-    file:close()
 
-    -- Parse JSON into a Lua table
-    config = json.decode(content)
-else
+if config == nil then
     print("Failed to open the JSON file.")
+    return
 end
----
 
-PYTHON_HELPER_PATH = config.PYTHON_HELPER_PATH
+UV_ANKI_DIR = config.UV_ANKI
+UV_ANKI = "main.py"
 
-local function getWord(word, err, flag)
+local function getWord(word)
     if not word then return end
     create_anki_card(word)
 end
-
 
 function create_anki_card(word)
     word = string.match(word, "^%s*(.-)%s*$")
@@ -84,18 +79,16 @@ function create_anki_card(word)
     fields["sub_text"] = sub_text
     fields["config"] = scripts_dir .. "/config.json"
 
-    local res = utils.format_json(fields)
+    local command = "'"..json.encode(fields).."'"
 
-    local args = { [[python]], PYTHON_HELPER_PATH, res }
+    local result = custom.pythonCommand(
+        command,
+        UV_ANKI_DIR,
+        UV_ANKI)
 
-    ret = utils.subprocess({ args = args })
+    custom.check(result)
 
-    if ret["status"] == 0 then
-        mp.osd_message("✔")
-    else
-        mp.osd_message(ret["stdout"], 2.0)
-        mp.msg.error(ret["stdout"])
-    end
+    --mp.osd_message("✔")
 
     start_timestamp = nil
     end_timestamp = nil
