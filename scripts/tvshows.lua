@@ -1,7 +1,6 @@
 package.path = mp.command_native({ "expand-path", "~~/script-modules/?.lua;" }) .. package.path
 
 local json = require 'dkjson'
-local input = require "user-input-module"
 local custom = require "custom-input"
 
 local config = custom.loadConfig("config.json", "scripts")
@@ -15,25 +14,34 @@ UV_TVSHOWS_DIR = config.UV_TVSHOWS
 UV_TVSHOWS = "tvshows.py"
 
 local fields = {}
+local Menu = "tvshows"
 
-local function displayInput(message, func)
-    mp.osd_message("🕳 Enter " .. message)
+local function display(data, script_name)
+    mp.commandv("script-message-to", "osm", "clear-menu", Menu)
+    for item = 1, data do
+        local command = string.format(
+            "script-message-to %s %s %s",
+            Menu,
+            script_name,
+            item
+        )
+        mp.commandv(
+            "script-message-to",
+            "osm",
+            "add-to-menu",
+            Menu,
+            tostring(item),
+            command
+        )
+    end
 
-    input.get_user_input(func, {
-        request_text = "❤ " .. message .. ":",
-        replace = true
-    }, "replace")
+    mp.commandv("script-message-to", "osm", "show-menu", Menu)
 end
 
-local function openEpisode(episode)
+mp.register_script_message("open_episode", function(episode)
     local num = tonumber(episode)
     if num == nil then
         mp.osd_message("Conversion faild", 1)
-        return
-    end
-
-    if num < 1 or num > fields["episodes"] then
-        mp.osd_message("Enter number between 1 and " .. fields["episodes"], 1)
         return
     end
 
@@ -45,7 +53,7 @@ local function openEpisode(episode)
 
     mp.commandv("loadfile", fields["url"] .. episode .. ".mp4")
     mp.command("set pause no")
-end
+end)
 
 mp.register_event("file-loaded", function ()
     local filename = mp.get_property('filename')
@@ -54,20 +62,10 @@ mp.register_event("file-loaded", function ()
     custom.file_loaded(sub)
 end)
 
-local function enteredEpisodeNumber(episode)
-    if not episode then return end
-    openEpisode(episode)
-end
-
-local function getEpisodes(season)
+mp.register_script_message("get_episodes", function(season)
     local num = tonumber(season)
     if num == nil then
         mp.osd_message("Conversion faild", 1)
-        return
-    end
-
-    if num < 1 or num > fields["seasons"] then
-        mp.osd_message("Enter number between 1 and " .. fields["seasons"], 1)
         return
     end
 
@@ -93,14 +91,9 @@ local function getEpisodes(season)
         fields["url"] = data["url"]
         fields["sub"] = data["sub"]
 
-        displayInput("Episode " .. "(1 - " .. fields["episodes"] .. ")", enteredEpisodeNumber)
+        display(fields["episodes"], "open_episode")
     end
-end
-
-local function enteredSeasonNumber(season)
-    if not season then return end
-    getEpisodes(season)
-end
+end)
 
 local function getSeasons(tvshow)
     fields = {}
@@ -117,7 +110,7 @@ local function getSeasons(tvshow)
         fields["seasons"] = data["seasons"]
         fields["showID"] = data["showID"]
 
-        displayInput("Season " .. "(1 - " .. fields["seasons"] .. ")", enteredSeasonNumber)
+        display(fields["seasons"], "get_episodes")
     end
 end
 
