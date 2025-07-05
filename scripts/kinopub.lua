@@ -68,10 +68,11 @@ local function displayAudioTracks(translators)
 
     for _, item in ipairs(translators) do
         local command = string.format(
-            "script-message-to %s %s %s",
+            "script-message-to %s %s %s %s",
             Menu,
             "selected_translator",
-            item["id"]
+            item["id"],
+            item["href"]
         )
         mp.commandv(
             "script-message-to",
@@ -142,9 +143,10 @@ mp.register_script_message("selected_show", function(url)
     end
 end)
 
-mp.register_script_message("selected_translator", function(translator_id)
-    local command = "translator -u " .. Url .. " -ti " .. translator_id
-    T = translator_id
+mp.register_script_message("selected_translator", function(ti, thref)
+    Url = thref
+    local command = "translator -u " .. Url .. " -ti " .. ti
+    T = ti
 
     local result = custom.pythonCommand(
         command,
