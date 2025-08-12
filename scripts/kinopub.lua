@@ -134,11 +134,11 @@ mp.register_script_message("selected_show", function(url)
         return
     end
 
-    if data["url"] ~= nil then
+    if data["url"] ~= nil and data["url"] ~= "" then
         custom.loadFile(data["url"])
     end
 
-    if data["sub"] ~= nil then
+    if data["sub"] ~= nil and data["sub"] ~= "" then
         subtitle = data["sub"]
     end
 end)
@@ -162,11 +162,11 @@ mp.register_script_message("selected_translator", function(ti, thref)
         return
     end
 
-    if data["url"] ~= nil then
+    if data["url"] ~= nil and data["url"] ~= "" then
         custom.loadFile(data["url"])
     end
 
-    if data["sub"] ~= nil then
+    if data["sub"] ~= nil and data["sub"] ~= "" then
         subtitle = data["sub"]
     end
 end)
@@ -215,11 +215,11 @@ mp.register_script_message("selected_episode", function(season, episode)
         return
     end
 
-    if data["url"] ~= nil then
+    if data["url"] ~= nil and data["url"] ~= "" then
         custom.loadFile(data["url"])
     end
 
-    if data["sub"] ~= nil then
+    if data["sub"] ~= nil and data["sub"] ~= "" then
         subtitle = data["sub"]
     end
 end)
